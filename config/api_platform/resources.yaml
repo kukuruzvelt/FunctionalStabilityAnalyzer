@@ -1,5 +1,6 @@
 resources:
-  App\CompanySubdomain\SomeModule\Domain\ExampleApiResource:
+  App\FunctionalStability\Domain\Entity\FunctionalStability:
     operations:
-      ApiPlatform\Metadata\Get:
-        openapi: true
+      ApiPlatform\Metadata\Post:
+        input: 'App\FunctionalStability\Domain\DTO\SimpleSearchDTO'
+        processor: 'App\FunctionalStability\Application\Processor\SimpleSearchProcessor'

@@ -1,0 +1,12 @@
+api_platform:
+    defaults:
+        extra_properties:
+            rfc_7807_compliant_errors: true
+
+    formats:
+        json: [ 'application/json' ]
+        graphql: [ 'application/graphql' ]
+        jsonld:   ['application/ld+json']
+
+    error_formats:
+        jsonproblem: [ 'application/problem+json' ]

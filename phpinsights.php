@@ -12,10 +12,10 @@ return [
     'remove' => [],
     'config' => [],
     'requirements' => [
-        'min-quality' => 100,
-        'min-complexity' => 100,
-        'min-architecture' => 100,
-        'min-style' => 100,
+        'min-quality' => 1,
+        'min-complexity' => 1,
+        'min-architecture' => 1,
+        'min-style' => 1,
     ],
     'threads' => null,
 ];

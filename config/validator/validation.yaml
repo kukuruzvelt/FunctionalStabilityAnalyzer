@@ -1,0 +1,8 @@
+App\FunctionalStability\Domain\DTO\SimpleSearchDTO:
+  properties:
+    nodes:
+      - NotNull: ~
+      - NotBlank: ~
+    edges:
+      - NotNull: ~
+      - NotBlank: ~

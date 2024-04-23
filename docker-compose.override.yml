@@ -17,9 +17,22 @@ services:
     extra_hosts:
       # Ensure that host.docker.internal is correctly defined on Linux
       - host.docker.internal:host-gateway
+    networks:
+      - user-service
 
   caddy:
     command: ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile", "--watch"]
     volumes:
       - ./public:/srv/app/public:ro
       - ./infrastructure/docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+
+  database:
+    networks:
+      - user-service
+
+  redis:
+    networks:
+      - user-service
+
+networks:
+  user-service:
