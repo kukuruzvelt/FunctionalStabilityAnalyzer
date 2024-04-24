@@ -90,3 +90,100 @@ class SimpleSearchProcessor implements ProcessorInterface
         }
     }
 }
+
+//function getAllNodePairs($nodes) {
+//    $pairs = [];
+//    $numNodes = count($nodes);
+//
+//    for ($i = 0; $i < $numNodes; $i++) {
+//        for ($j = $i + 1; $j < $numNodes; $j++) {
+//            $pairs[] = [$nodes[$i], $nodes[$j]];
+//        }
+//    }
+//
+//    return $pairs;
+//}
+//
+//function getAllEdgeCombinations($edges) {
+//    $numEdges = count($edges);
+//    $combinations = [];
+//
+//    // Генерируем все числа от 0 до 2^numEdges - 1
+//    for ($i = 0; $i < pow(2, $numEdges); $i++) {
+//        $combination = [];
+//        // Преобразуем число в двоичную строку длиной numEdges
+//        $binary = str_pad(decbin($i), $numEdges, '0', STR_PAD_LEFT);
+//        // Для каждого ребра определяем его состояние (присутствует или отсутствует)
+//        for ($j = 0; $j < $numEdges; $j++) {
+//            $combination[] = $binary[$j] === '1'; // Преобразуем '1' в true, '0' в false
+//        }
+//        $combinations[] = $combination;
+//    }
+//
+//    return $combinations;
+//}
+//
+//function hasPathBetweenNodesWithEdgeCombination($edges, $source, $target, $edgeCombination) {
+//    $graph = buildGraph($edges, $edgeCombination);
+//    $visited = [];
+//    return hasPathDFS($graph, $source, $target, $visited);
+//}
+//
+//// Функция поиска в глубину (DFS) для проверки существования пути между вершинами
+//function hasPathDFS($graph, $source, $target, &$visited) {
+//    if ($source === $target) {
+//        return true; // Найден путь
+//    }
+//    if(!key_exists($source, $graph)){
+//        return false;
+//    }
+//    $visited[$source] = true;
+//    foreach ($graph[$source] as $neighbor) {
+//        if (!isset($visited[$neighbor])) {
+//            if (hasPathDFS($graph, $neighbor, $target, $visited)) {
+//                return true; // Найден путь
+//            }
+//        }
+//    }
+//    return false; // Путь не найден
+//}
+//
+//
+//// Функция для построения графа на основе списка рёбер и комбинации рёбер
+//function buildGraph($edges, $edgeCombination) {
+//    $graph = [];
+//    foreach ($edges as $key => $edge) {
+//        if ($edgeCombination[$key]) { // Проверяем, присутствует ли ребро в комбинации
+//            $graph[$edge['source']][] = $edge['target'];
+//        }
+//    }
+//    return $graph;
+//}
+//
+//function countProbabilities($edges, $nodePairs, $edgeCombinations)
+//{
+//    $result = [];
+//    foreach ($nodePairs as $pair) {
+//        $source = $pair[0];
+//        $target = $pair[1];
+//        $probability = 0;
+//        foreach ($edgeCombinations as $combination) {
+//            if(hasPathBetweenNodesWithEdgeCombination($edges, $source, $target, $combination)){
+//                $temp = 1;
+//                for ($i = 0; $i < count($combination); $i++) {
+//                    if($combination[$i]){
+//                        $temp *= $edges[$i]["successChance"];
+//                    }
+//                    else{
+//                        $temp *= 1 - $edges[$i]["successChance"];
+//                    }
+//                }
+//                $probability += $temp;
+//            }
+//        }
+//
+//        $result[] = "Общая вероятность для пары вершин $source и $target: $probability";
+//    }
+//
+//    return $result;
+//}
