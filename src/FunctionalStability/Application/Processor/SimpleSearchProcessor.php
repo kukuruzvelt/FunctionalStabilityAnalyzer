@@ -24,21 +24,21 @@ class SimpleSearchProcessor implements ProcessorInterface
     {
         $startTime = time(); // First timestamp (current time)
 
-//        {
-//  "nodes": ["1", "2", "3"],
-//  "edges": [
-//    {"source": "1", "target": "2", "successChance": 0.9},
-//    {"source": "2", "target": "3", "successChance": 0.8}
-//  ]
-//}
+        //        {
+        //  "nodes": ["1", "2", "3"],
+        //  "edges": [
+        //    {"source": "1", "target": "2", "successChance": 0.9},
+        //    {"source": "2", "target": "3", "successChance": 0.8}
+        //  ]
+        //}
 
-//        $graph = [
-//            "nodes" => ["1", "2", "3"],
-//            "edges" => [
-//                ["source" => "1", "target" => "2", "successChance" => 0.9],
-//                ["source" => "2", "target" => "3", "successChance" => 0.8]
-//            ]
-//        ];
+        //        $graph = [
+        //            "nodes" => ["1", "2", "3"],
+        //            "edges" => [
+        //                ["source" => "1", "target" => "2", "successChance" => 0.9],
+        //                ["source" => "2", "target" => "3", "successChance" => 0.8]
+        //            ]
+        //        ];
 
         $graph = [
             "nodes" => $data->nodes,
@@ -46,13 +46,15 @@ class SimpleSearchProcessor implements ProcessorInterface
         ];
 
         if($this->graphMatrixValidator->validate($graph) && $this->isConnectedGraph($graph)) {
-            return new Response(content: new \ArrayObject(
-                [
-                    "execTime" => $startTime - time(),
-                    "x(G)" => 0,
-                    "λ(G)" => 0,
-                    "probabilityMatrix" => $this->countProbabilities($graph)
-                ])
+            return new Response(
+                content: new \ArrayObject(
+                    [
+                        "execTime" => $startTime - time(),
+                        "x(G)" => 0,
+                        "λ(G)" => 0,
+                        "probabilityMatrix" => $this->countProbabilities($graph)
+                    ]
+                )
             );
         }
         return new Response('validation error');
@@ -65,7 +67,7 @@ class SimpleSearchProcessor implements ProcessorInterface
         //Response : stable: true, false, χ(G), λ(G), Pij(t)(json array for each node pair), timeSpentOnCalculations
     }
 
-    private  function isConnectedGraph($graph)
+    private function isConnectedGraph($graph)
     {
         $nodes = $graph['nodes'];
         $edges = $graph['edges'];
@@ -94,7 +96,7 @@ class SimpleSearchProcessor implements ProcessorInterface
         return count($visited) === $n;
     }
 
-    private  function dfs($adjMatrix, $source, &$visited)
+    private function dfs($adjMatrix, $source, &$visited)
     {
         // Помечаем текущую вершину как посещённую
         $visited[$source] = true;
@@ -107,7 +109,8 @@ class SimpleSearchProcessor implements ProcessorInterface
         }
     }
 
-    private function getAllNodePairs($nodes) {
+    private function getAllNodePairs($nodes)
+    {
         $pairs = [];
         $numNodes = count($nodes);
 
@@ -120,7 +123,8 @@ class SimpleSearchProcessor implements ProcessorInterface
         return $pairs;
     }
 
-    private function getAllEdgeCombinations($edges) {
+    private function getAllEdgeCombinations($edges)
+    {
         $numEdges = count($edges);
         $combinations = [];
 
@@ -139,18 +143,20 @@ class SimpleSearchProcessor implements ProcessorInterface
         return $combinations;
     }
 
-    private function hasPathBetweenNodesWithEdgeCombination($edges, $source, $target, $edgeCombination) {
+    private function hasPathBetweenNodesWithEdgeCombination($edges, $source, $target, $edgeCombination)
+    {
         $graph = $this->buildGraph($edges, $edgeCombination);
         $visited = [];
         return $this->hasPathDFS($graph, $source, $target, $visited);
     }
 
-// Функция поиска в глубину (DFS) для проверки существования пути между вершинами
-    private function hasPathDFS($graph, $source, $target, &$visited) {
+    // Функция поиска в глубину (DFS) для проверки существования пути между вершинами
+    private function hasPathDFS($graph, $source, $target, &$visited)
+    {
         if ($source === $target) {
             return true; // Найден путь
         }
-        if(!key_exists($source, $graph)){
+        if(!key_exists($source, $graph)) {
             return false;
         }
         $visited[$source] = true;
@@ -165,8 +171,9 @@ class SimpleSearchProcessor implements ProcessorInterface
     }
 
 
-// Функция для построения графа на основе списка рёбер и комбинации рёбер
-    private function buildGraph($edges, $edgeCombination) {
+    // Функция для построения графа на основе списка рёбер и комбинации рёбер
+    private function buildGraph($edges, $edgeCombination)
+    {
         $graph = [];
         foreach ($edges as $key => $edge) {
             if ($edgeCombination[$key]) { // Проверяем, присутствует ли ребро в комбинации
@@ -188,13 +195,12 @@ class SimpleSearchProcessor implements ProcessorInterface
             $target = $pair[1];
             $probability = 0;
             foreach ($edgeCombinations as $combination) {
-                if($this->hasPathBetweenNodesWithEdgeCombination($edges, $source, $target, $combination)){
+                if($this->hasPathBetweenNodesWithEdgeCombination($edges, $source, $target, $combination)) {
                     $temp = 1;
                     for ($i = 0; $i < count($combination); $i++) {
-                        if($combination[$i]){
+                        if($combination[$i]) {
                             $temp *= $edges[$i]["successChance"];
-                        }
-                        else{
+                        } else {
                             $temp *= 1 - $edges[$i]["successChance"];
                         }
                     }
@@ -209,4 +215,3 @@ class SimpleSearchProcessor implements ProcessorInterface
     }
 
 }
-
