@@ -31,13 +31,13 @@ final readonly class SimpleSearchProcessor implements ProcessorInterface
         //          ]
         //        }
 
-//                        $graph = [
-//                            "nodes" => ["1", "2", "3"],
-//                            "edges" => [
-//                                ["source" => "1", "target" => "2", "successChance" => 0.9],
-//                                ["source" => "2", "target" => "3", "successChance" => 0.8]
-//                            ]
-//                        ];
+        //                        $graph = [
+        //                            "nodes" => ["1", "2", "3"],
+        //                            "edges" => [
+        //                                ["source" => "1", "target" => "2", "successChance" => 0.9],
+        //                                ["source" => "2", "target" => "3", "successChance" => 0.8]
+        //                            ]
+        //                        ];
 
         // TODO
         //1. Число вершинной связности χ(G) – это наименьшее число вершин, удаление которых вместе с инцидентными им ребрами приводит к несвязному или одновершинному графу.

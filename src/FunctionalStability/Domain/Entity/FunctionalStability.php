@@ -117,7 +117,7 @@ final readonly class FunctionalStability
 
     public function isConnectedGraph(array $graph = []): bool
     {
-        if(!$graph){
+        if(!$graph) {
             $graph = $this->graph;
         }
         $nodes = $graph['nodes'];
@@ -163,13 +163,13 @@ final readonly class FunctionalStability
     public function getXG(array $graph = []): int
     {
         $xG = 1;
-        if(!$graph){
+        if(!$graph) {
             $graph = $this->graph;
         }
 
         for ($i = 0; $i < count($graph['nodes']); $i++) {
             $tempGraph = $this->removeNodeFromGraph($graph, $i);
-            if(!count($tempGraph['nodes']) > 1 || !$this->isConnectedGraph($tempGraph)){
+            if(!count($tempGraph['nodes']) > 1 || !$this->isConnectedGraph($tempGraph)) {
                 return $xG;
             }
         }
