@@ -61,7 +61,7 @@ final readonly class SimpleSearchProcessor implements ProcessorInterface
                 [
                     "execTimeMilliseconds" => $this->getCurrentMicroseconds() - $startTime,
                     "x(G)" => $functionalStability->getXG(),
-                    "λ(G)" => 0,
+                    "λ(G)" => $functionalStability->getAlphaG(),
                     "probabilityMatrix" => $functionalStability->countProbabilitiesSimpleSearch()
                 ]
             )

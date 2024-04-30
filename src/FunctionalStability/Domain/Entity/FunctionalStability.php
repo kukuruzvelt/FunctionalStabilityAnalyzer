@@ -124,6 +124,10 @@ final readonly class FunctionalStability
         $edges = $graph['edges'];
         $n = count($nodes);
 
+        if(count($nodes) < 1 || count($edges) < 1) {
+            return false;
+        }
+
         // Создаем матрицу смежности для графа
         $adjMatrix = [];
         foreach ($nodes as $node1) {
@@ -197,6 +201,30 @@ final readonly class FunctionalStability
         unset($graph['nodes'][$nodeIndex]);
         $graph['nodes'] = array_values($graph['nodes']); // Перенумеруем ключи
 
+        return $graph;
+    }
+
+    public function getAlphaG(array $graph = [])
+    {
+        $alphaG = 1;
+        if(!$graph) {
+            $graph = $this->graph;
+        }
+
+        for ($i = 0; $i < count($graph['edges']); $i++) {
+            $tempGraph = $this->removeEdgeFromGraph($graph, $i);
+            if(!count($tempGraph['edges']) > 1 || !$this->isConnectedGraph($tempGraph)) {
+                return $alphaG;
+            }
+        }
+
+        return $alphaG + $this->getAlphaG($this->removeEdgeFromGraph($graph, 0));
+    }
+
+    private function removeEdgeFromGraph(array $graph, int $edgeIndex)
+    {
+        unset($graph['edges'][$edgeIndex]);
+        $graph['edges'] = array_values($graph['edges']); // Перенумеруем ключи
         return $graph;
     }
 }
