@@ -72,12 +72,16 @@ final readonly class FunctionalStability
     }
 
     // Функция для построения графа на основе списка рёбер и комбинации рёбер
-    private function buildGraph($edges, $edgeCombination): array
+    function buildGraph($edges, $edgeCombination): array
     {
         $graph = [];
         foreach ($edges as $key => $edge) {
             if ($edgeCombination[$key]) { // Проверяем, присутствует ли ребро в комбинации
-                $graph[$edge['source']][] = $edge['target'];
+                $source = $edge['source'];
+                $target = $edge['target'];
+                $graph[$source][] = $target;
+                // Учитываем и обратное направление ребра
+                $graph[$target][] = $source;
             }
         }
         return $graph;

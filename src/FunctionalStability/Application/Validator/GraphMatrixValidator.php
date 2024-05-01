@@ -53,6 +53,4 @@ class GraphMatrixValidator
             throw new \Exception('Graph is not connected');
         }
     }
-
-
 }
