@@ -10,6 +10,8 @@ use ApiPlatform\State\ProcessorInterface;
 use App\FunctionalStability\Application\Validator\GraphMatrixValidator;
 use App\FunctionalStability\Domain\DTO\SimpleSearchDTO;
 use App\FunctionalStability\Domain\Entity\FunctionalStability;
+use App\FunctionalStability\Infrastructure\FunctionalStabilityRepository;
+use Symfony\Component\Uid\Uuid;
 
 /**
  * @implements ProcessorInterface<SimpleSearchDTO, Response>
@@ -17,19 +19,20 @@ use App\FunctionalStability\Domain\Entity\FunctionalStability;
 final readonly class SimpleSearchProcessor implements ProcessorInterface
 {
     public function __construct(
-        private GraphMatrixValidator $graphMatrixValidator
+        private GraphMatrixValidator $graphMatrixValidator,
+        private FunctionalStabilityRepository $repository
     ) {
     }
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): Response
     {
-        //        {
-        //          "nodes": ["1", "2", "3"],
-        //          "edges": [
-        //            {"source": "1", "target": "2", "successChance": 0.9},
-        //            {"source": "2", "target": "3", "successChance": 0.8}
-        //          ]
-        //        }
+//                {
+//                  "nodes": ["1", "2", "3"],
+//                  "edges": [
+//                    {"source": "1", "target": "2", "successChance": 0.9},
+//                    {"source": "2", "target": "3", "successChance": 0.8}
+//                  ]
+//                }
 
         //                        $graph = [
         //                            "nodes" => ["1", "2", "3"],
@@ -55,6 +58,17 @@ final readonly class SimpleSearchProcessor implements ProcessorInterface
         $this->graphMatrixValidator->validate($graph);
 
         $functionalStability = new FunctionalStability($graph);
+        $xG = $functionalStability->countXG();
+        $alphaG = $functionalStability->countAlphaG();
+        $probabilityMatrix = $functionalStability->countProbabilitiesSimpleSearch();
+
+        $functionalStability->setXG($xG);
+        $functionalStability->setAlphaG($alphaG);
+        $functionalStability->setProbabilities($probabilityMatrix);
+
+        $functionalStability->setId(Uuid::v7());
+
+        $this->repository->save($functionalStability);
 
         return new Response(
             content: new \ArrayObject(
@@ -62,7 +76,7 @@ final readonly class SimpleSearchProcessor implements ProcessorInterface
                     "execTimeMilliseconds" => $this->getCurrentMicroseconds() - $startTime,
                     "x(G)" => $functionalStability->getXG(),
                     "λ(G)" => $functionalStability->getAlphaG(),
-                    "probabilityMatrix" => $functionalStability->countProbabilitiesSimpleSearch()
+                    "probabilityMatrix" => $functionalStability->getProbabilities()
                 ]
             )
         );

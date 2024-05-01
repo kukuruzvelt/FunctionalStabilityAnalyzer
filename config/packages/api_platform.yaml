@@ -10,3 +10,6 @@ api_platform:
 
     error_formats:
         jsonproblem: [ 'application/problem+json' ]
+
+    resource_class_directories:
+        - '%kernel.project_dir%/src/FunctionalStability/Domain/Entity'

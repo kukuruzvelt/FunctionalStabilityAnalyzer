@@ -4,10 +4,79 @@ declare(strict_types=1);
 
 namespace App\FunctionalStability\Domain\Entity;
 
-final readonly class FunctionalStability
+use App\FunctionalStability\Infrastructure\FunctionalStabilityRepository;
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Uid\Uuid;
+
+
+#[ORM\Entity(repositoryClass: FunctionalStabilityRepository::class)]
+final class FunctionalStability
 {
     public function __construct(private array $graph)
     {
+    }
+
+    #[ORM\Id]
+    #[ORM\Column(type: UuidType::NAME)]
+    private ?Uuid $id = null;
+
+    #[ORM\Column]
+    private ?int $xG = null;
+
+    #[ORM\Column]
+    private ?int $alphaG = null;
+
+    #[ORM\Column(type: Types::JSON)]
+    private array $probabilities = [];
+
+    public function getId(): ?Uuid
+    {
+        return $this->id;
+    }
+
+    public function getXG(): ?int
+    {
+        return $this->xG;
+    }
+
+    public function setXG(int $xG): static
+    {
+        $this->xG = $xG;
+
+        return $this;
+    }
+
+    public function getAlphaG(): ?int
+    {
+        return $this->alphaG;
+    }
+
+    public function setAlphaG(int $alphaG): static
+    {
+        $this->alphaG = $alphaG;
+
+        return $this;
+    }
+
+    public function getProbabilities(): array
+    {
+        return $this->probabilities;
+    }
+
+    public function setProbabilities(array $probabilities): static
+    {
+        $this->probabilities = $probabilities;
+
+        return $this;
+    }
+
+    public function setId(Uuid $id): static
+    {
+        $this->id = $id;
+
+        return $this;
     }
 
     private function getAllNodePairs($nodes): array
@@ -72,7 +141,7 @@ final readonly class FunctionalStability
     }
 
     // Функция для построения графа на основе списка рёбер и комбинации рёбер
-    function buildGraph($edges, $edgeCombination): array
+    public function buildGraph($edges, $edgeCombination): array
     {
         $graph = [];
         foreach ($edges as $key => $edge) {
@@ -121,14 +190,14 @@ final readonly class FunctionalStability
 
     public function isConnectedGraph(array $graph = []): bool
     {
-        if(!$graph) {
+        if (!$graph) {
             $graph = $this->graph;
         }
         $nodes = $graph['nodes'];
         $edges = $graph['edges'];
         $n = count($nodes);
 
-        if(count($nodes) < 1 || count($edges) < 1) {
+        if (count($nodes) < 1 || count($edges) < 1) {
             return false;
         }
 
@@ -168,21 +237,21 @@ final readonly class FunctionalStability
         }
     }
 
-    public function getXG(array $graph = []): int
+    public function countXG(array $graph = []): int
     {
         $xG = 1;
-        if(!$graph) {
+        if (!$graph) {
             $graph = $this->graph;
         }
 
         for ($i = 0; $i < count($graph['nodes']); $i++) {
             $tempGraph = $this->removeNodeFromGraph($graph, $i);
-            if(!count($tempGraph['nodes']) > 1 || !$this->isConnectedGraph($tempGraph)) {
+            if (!count($tempGraph['nodes']) > 1 || !$this->isConnectedGraph($tempGraph)) {
                 return $xG;
             }
         }
 
-        return $xG + $this->getXG($this->removeNodeFromGraph($graph, 0));
+        return $xG + $this->countXG($this->removeNodeFromGraph($graph, 0));
     }
 
     private function removeNodeFromGraph(array $graph, int $nodeIndex): array
@@ -208,21 +277,21 @@ final readonly class FunctionalStability
         return $graph;
     }
 
-    public function getAlphaG(array $graph = [])
+    public function countAlphaG(array $graph = [])
     {
         $alphaG = 1;
-        if(!$graph) {
+        if (!$graph) {
             $graph = $this->graph;
         }
 
         for ($i = 0; $i < count($graph['edges']); $i++) {
             $tempGraph = $this->removeEdgeFromGraph($graph, $i);
-            if(!count($tempGraph['edges']) > 1 || !$this->isConnectedGraph($tempGraph)) {
+            if (!count($tempGraph['edges']) > 1 || !$this->isConnectedGraph($tempGraph)) {
                 return $alphaG;
             }
         }
 
-        return $alphaG + $this->getAlphaG($this->removeEdgeFromGraph($graph, 0));
+        return $alphaG + $this->countAlphaG($this->removeEdgeFromGraph($graph, 0));
     }
 
     private function removeEdgeFromGraph(array $graph, int $edgeIndex)
