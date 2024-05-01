@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\FunctionalStability\Infrastructure;
 
 use App\FunctionalStability\Domain\Entity\FunctionalStability;
@@ -20,8 +22,7 @@ class FunctionalStabilityRepository extends ServiceEntityRepository
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly ManagerRegistry $registry
-    )
-    {
+    ) {
         parent::__construct($this->registry, FunctionalStability::class);
     }
 
@@ -31,4 +32,3 @@ class FunctionalStabilityRepository extends ServiceEntityRepository
         $this->entityManager->flush();
     }
 }
-
