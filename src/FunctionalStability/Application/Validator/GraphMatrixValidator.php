@@ -38,7 +38,7 @@ class GraphMatrixValidator
             $pairKey = implode('-', $sortedPair);
             // Проверка на уникальность комбинации source и target
             if (in_array($pairKey, $sourceTargetPairs)) {
-                throw new \Exception('Combinations of source and target are not unique ');
+                throw new \Exception('Combinations of source and target are not unique ' . $pairKey);
             }
             $sourceTargetPairs[] = $pairKey;
             // Проверка диапазона значений successChance

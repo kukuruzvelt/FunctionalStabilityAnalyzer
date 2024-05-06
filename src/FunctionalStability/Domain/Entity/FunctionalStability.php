@@ -327,9 +327,6 @@ final class FunctionalStability
             $edges[] = $currentEdge;
         }
 
-        // Удаляем дубликаты рёбер, чтобы избежать нескольких рёбер между одними и теми же вершинами
-        $edges = array_unique($edges, SORT_REGULAR);
-
         return [
             "nodes" => $nodes,
             "edges" => $edges
