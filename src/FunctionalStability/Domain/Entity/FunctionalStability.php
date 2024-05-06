@@ -187,6 +187,158 @@ final class FunctionalStability
         return $result;
     }
 
+    public function countProbabilitiesStructuralTransformation(): array
+    {
+        $graph = $this->graph;
+        $edges = $graph['edges'];
+        $nodePairs = $this->getAllNodePairs($graph['nodes']);
+
+        return [];
+    }
+
+    function hasPathDFSWithContractedNodes($graph, $source, $target, &$visited): bool
+    {
+        // Проверяем, существует ли вершина $source в графе
+        $found = false;
+        foreach ($graph['nodes'] as $node) {
+            if (str_contains($node, $source) && str_contains($node, $target)) {
+                return true;
+            }
+            if ($node === $source || strpos($node, '|') !== false && in_array($source, explode('|', $node))) {
+                $found = true;
+                break;
+            }
+        }
+        if (!$found) {
+            return false;
+        }
+
+        // Проверяем, достигли ли мы целевой вершины
+        if ($source === $target) {
+            return true; // Найден путь
+        }
+
+        // Проверяем, есть ли соседи у текущей вершины
+        if (!isset($graph['edges']) || empty($graph['edges'])) {
+            return false;
+        }
+
+        // Помечаем текущую вершину как посещенную
+        $visited[$source] = true;
+
+        // Перебираем все рёбра графа
+        foreach ($graph['edges'] as $edge) {
+            $edgeSource = $edge['source'];
+            $edgeTarget = $edge['target'];
+
+            // Проверяем, инцидентно ли текущее ребро нашей вершине
+            if (strpos($edgeSource, $source) !== false || strpos($edgeTarget, $source) !== false) {
+                // Определяем вершину, к которой ведет текущее ребро
+                $neighbor = ($edgeSource === $source) ? $edgeTarget : $edgeSource;
+
+                // Проверяем, посещали ли мы уже эту вершину
+                if (!isset($visited[$neighbor])) {
+                    // Если мы еще не посещали эту вершину, рекурсивно ищем путь от нее до целевой вершины
+                    if ($this->hasPathDFSWithContractedNodes($graph, $neighbor, $target, $visited)) {
+                        return true; // Найден путь
+                    }
+                }
+            }
+        }
+
+        // Если мы дошли до этой точки, значит, путь не найден
+        return false;
+    }
+
+    function countProbabilityForNodePairStructuralTransformation(
+        array $graph,
+        string $source,
+        string $target,
+    ): float
+    {
+        $probability = 0;
+        $edgeIndex = 0;
+        $edge = $graph['edges'][$edgeIndex];
+
+        $graphWithContractedEdge = $this->contractEdge($graph, $edgeIndex);
+        if (count($graphWithContractedEdge['edges']) > 0) {
+            $probability += ($edge["successChance"] * $this->countProbabilityForNodePairStructuralTransformation($graphWithContractedEdge, $source, $target));
+        } else $probability += $edge["successChance"];
+
+        $graphWithRemovedEdge = $this->removeEdge($graph, $edgeIndex);
+        $visited = [];
+        if ($this->hasPathDFSWithContractedNodes($graphWithRemovedEdge, $source, $target, $visited)) {
+            if (count($graphWithRemovedEdge['edges']) > 0) {
+                $probability += ((1 - $edge["successChance"]) * $this->countProbabilityForNodePairStructuralTransformation($graphWithRemovedEdge, $source, $target));
+            } else $probability += (1 - $edge["successChance"]);
+        }
+
+        return $probability;
+    }
+
+    function contractEdge(array $graph, int $edgeIndex): array
+    {
+        // Получаем ребро по индексу
+        $edge = $graph['edges'][$edgeIndex];
+        $source = $edge['source'];
+        $target = $edge['target'];
+
+        // Создаем новую вершину, которая объединяет вершины source и target
+        $newNode = $source . '|' . $target;
+
+        // Удаляем вершины source и target из списка вершин
+        $nodes = array_diff($graph['nodes'], [$source, $target]);
+
+        // Добавляем новую вершину в список вершин
+        $nodes[] = $newNode;
+
+        // Создаем новые ребра, соединяющие новую вершину с вершинами, смежными source и target
+        $edges = [];
+        foreach ($graph['edges'] as $currentEdgeIndex => $currentEdge) {
+            $currentSource = $currentEdge['source'];
+            $currentTarget = $currentEdge['target'];
+
+            // Исключаем ребро, по которому осуществлялось стягивание
+            if ($currentEdgeIndex === $edgeIndex) {
+                continue;
+            }
+
+            // Если текущее ребро инцидентно одной из стягиваемых вершин, заменяем её новой вершиной
+            if ($currentSource === $source || $currentSource === $target) {
+                $currentEdge['source'] = $newNode;
+            }
+            if ($currentTarget === $source || $currentTarget === $target) {
+                $currentEdge['target'] = $newNode;
+            }
+
+            // Добавляем ребро в список, если оно не было исключено
+            $edges[] = $currentEdge;
+        }
+
+        // Удаляем дубликаты рёбер, чтобы избежать нескольких рёбер между одними и теми же вершинами
+        $edges = array_unique($edges, SORT_REGULAR);
+
+        return [
+            "nodes" => $nodes,
+            "edges" => $edges
+        ];
+    }
+
+    function removeEdge(array $graph, int $index): array
+    {
+        // Проверяем, существует ли ребро с указанным индексом в списке рёбер
+        if (isset($graph['edges'][$index])) {
+            // Удаляем ребро с указанным индексом из списка рёбер
+            unset($graph['edges'][$index]);
+
+            // Переиндексируем массив рёбер, чтобы индексы начинались с 0
+            $graph['edges'] = array_values($graph['edges']);
+        }
+
+        // Возвращаем новый граф с удаленным ребром
+        return $graph;
+    }
+
     public function isConnectedGraph(array $graph = []): bool
     {
         if (!$graph) {
@@ -293,7 +445,7 @@ final class FunctionalStability
         return $alphaG + $this->countAlphaG($this->removeEdgeFromGraph($graph, 0));
     }
 
-    private function removeEdgeFromGraph(array $graph, int $edgeIndex)
+    private function removeEdgeFromGraph(array $graph, int $edgeIndex): array
     {
         unset($graph['edges'][$edgeIndex]);
         $graph['edges'] = array_values($graph['edges']); // Перенумеруем ключи
