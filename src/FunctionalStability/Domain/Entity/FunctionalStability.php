@@ -196,7 +196,7 @@ final class FunctionalStability
         return [];
     }
 
-    function hasPathDFSWithContractedNodes($graph, $source, $target, &$visited): bool
+    private function hasPathDFSWithContractedNodes($graph, $source, $target, &$visited): bool
     {
         // Проверяем, существует ли вершина $source в графе
         $found = false;
@@ -250,12 +250,11 @@ final class FunctionalStability
         return false;
     }
 
-    function countProbabilityForNodePairStructuralTransformation(
+    private function countProbabilityForNodePairStructuralTransformation(
         array $graph,
         string $source,
         string $target,
-    ): float
-    {
+    ): float {
         $probability = 0;
         $edgeIndex = 0;
         $edge = $graph['edges'][$edgeIndex];
@@ -263,20 +262,24 @@ final class FunctionalStability
         $graphWithContractedEdge = $this->contractEdge($graph, $edgeIndex);
         if (count($graphWithContractedEdge['edges']) > 0) {
             $probability += ($edge["successChance"] * $this->countProbabilityForNodePairStructuralTransformation($graphWithContractedEdge, $source, $target));
-        } else $probability += $edge["successChance"];
+        } else {
+            $probability += $edge["successChance"];
+        }
 
         $graphWithRemovedEdge = $this->removeEdge($graph, $edgeIndex);
         $visited = [];
         if ($this->hasPathDFSWithContractedNodes($graphWithRemovedEdge, $source, $target, $visited)) {
             if (count($graphWithRemovedEdge['edges']) > 0) {
                 $probability += ((1 - $edge["successChance"]) * $this->countProbabilityForNodePairStructuralTransformation($graphWithRemovedEdge, $source, $target));
-            } else $probability += (1 - $edge["successChance"]);
+            } else {
+                $probability += (1 - $edge["successChance"]);
+            }
         }
 
         return $probability;
     }
 
-    function contractEdge(array $graph, int $edgeIndex): array
+    private function contractEdge(array $graph, int $edgeIndex): array
     {
         // Получаем ребро по индексу
         $edge = $graph['edges'][$edgeIndex];
@@ -324,7 +327,7 @@ final class FunctionalStability
         ];
     }
 
-    function removeEdge(array $graph, int $index): array
+    private function removeEdge(array $graph, int $index): array
     {
         // Проверяем, существует ли ребро с указанным индексом в списке рёбер
         if (isset($graph['edges'][$index])) {

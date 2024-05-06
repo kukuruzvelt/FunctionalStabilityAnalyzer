@@ -26,13 +26,13 @@ final readonly class SimpleSearchProcessor implements ProcessorInterface
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): Response
     {
-//                        {
-//                          "nodes": ["1", "2", "3"],
-//                          "edges": [
-//                            {"source": "1", "target": "2", "successChance": 0.9},
-//                            {"source": "2", "target": "3", "successChance": 0.8}
-//                          ]
-//                        }
+        //                        {
+        //                          "nodes": ["1", "2", "3"],
+        //                          "edges": [
+        //                            {"source": "1", "target": "2", "successChance": 0.9},
+        //                            {"source": "2", "target": "3", "successChance": 0.8}
+        //                          ]
+        //                        }
 
         //                        $graph = [
         //                            "nodes" => ["1", "2", "3"],
