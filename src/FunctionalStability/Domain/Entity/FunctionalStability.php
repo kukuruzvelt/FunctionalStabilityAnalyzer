@@ -190,11 +190,20 @@ final class FunctionalStability
     public function countProbabilitiesStructuralTransformation(): array
     {
         $graph = $this->graph;
-        $edges = $graph['edges'];
         $nodePairs = $this->getAllNodePairs($graph['nodes']);
 
-        return [];
+        $result = [];
+        foreach ($nodePairs as $pair) {
+            $source = $pair[0];
+            $target = $pair[1];
+            $probability = $this->countProbabilityForNodePairStructuralTransformation($graph, $source, $target);
+
+            $result[] = ['source' => $source, 'target' => $target, 'probability' => $probability];
+        }
+
+        return $result;
     }
+
 
     private function hasPathDFSWithContractedNodes($graph, $source, $target, &$visited): bool
     {

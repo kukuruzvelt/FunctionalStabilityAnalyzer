@@ -16,7 +16,7 @@ use Symfony\Component\Uid\Uuid;
 /**
  * @implements ProcessorInterface<SimpleSearchDTO, Response>
  */
-final readonly class SimpleSearchProcessor implements ProcessorInterface
+class StructuralTransformationProcessor implements ProcessorInterface
 {
     public function __construct(
         private GraphMatrixValidator $graphMatrixValidator,
@@ -26,28 +26,6 @@ final readonly class SimpleSearchProcessor implements ProcessorInterface
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): Response
     {
-        //                                {
-        //                                  "nodes": ["1", "2", "3"],
-        //                                  "edges": [
-        //                                    {"source": "1", "target": "2", "successChance": 0.9},
-        //                                    {"source": "2", "target": "3", "successChance": 0.8}
-        //                                  ]
-        //                                }
-
-        //                        $graph = [
-        //                            "nodes" => ["1", "2", "3"],
-        //                            "edges" => [
-        //                                ["source" => "1", "target" => "2", "successChance" => 0.9],
-        //                                ["source" => "2", "target" => "3", "successChance" => 0.8]
-        //                            ]
-        //                        ];
-
-        // TODO
-        //1. Число вершинной связности χ(G) – это наименьшее число вершин, удаление которых вместе с инцидентными им ребрами приводит к несвязному или одновершинному графу.
-        //2. Число реберной связности λ(G) – это наименьшее число ребер, удаление которых приводит к несвязному графу.
-        //3. Вероятность связности Pij(t) – это вероятность того, что сообщение из узла i в узел j будет передано за время не более, чем t.
-        //Response : stable: true/false, χ(G), λ(G), Pij(t)(json array for each node pair), timeSpentOnCalculations
-
         $startTime = $this->getCurrentMicroseconds();
 
         $graph = [
@@ -60,7 +38,7 @@ final readonly class SimpleSearchProcessor implements ProcessorInterface
         $functionalStability = new FunctionalStability($graph);
         $xG = $functionalStability->countXG();
         $alphaG = $functionalStability->countAlphaG();
-        $probabilityMatrix = $functionalStability->countProbabilitiesSimpleSearch();
+        $probabilityMatrix = $functionalStability->countProbabilitiesStructuralTransformation();
 
         $functionalStability->setXG($xG);
         $functionalStability->setAlphaG($alphaG);
