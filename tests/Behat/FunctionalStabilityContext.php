@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Behat;
 
 use Behat\Behat\Context\Context;
@@ -19,10 +21,9 @@ class FunctionalStabilityContext implements Context
     public function __construct(
         private readonly KernelInterface $kernel,
         private SerializerInterface $serializer
-    )
-    {
-       $this->nodes = [];
-       $this->edges = [];
+    ) {
+        $this->nodes = [];
+        $this->edges = [];
     }
 
 
@@ -59,7 +60,7 @@ class FunctionalStabilityContext implements Context
             [],
             [
                 'HTTP_ACCEPT' => 'application/json',
-                'CONTENT_TYPE' =>'application/json',
+                'CONTENT_TYPE' => 'application/json',
             ],
             $this->serializer->serialize(
                 [
@@ -83,7 +84,7 @@ class FunctionalStabilityContext implements Context
             [],
             [],
             ['HTTP_ACCEPT' => 'application/json',
-                'CONTENT_TYPE' =>'application/json',
+                'CONTENT_TYPE' => 'application/json',
             ],
             $this->serializer->serialize(
                 [
