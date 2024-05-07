@@ -10,38 +10,38 @@ class GraphMatrixValidator
 {
     public function validate($graph): void
     {
-        // Проверка типов и значений в nodes
+        // Перевірка типів і значень в nodes
         foreach ($graph['nodes'] as $node) {
             if (!is_string($node)) {
                 throw new \Exception('All elements in nodes must be strings'); // Если хотя бы один элемент nodes не строка, возвращаем false
             }
         }
 
-        // Проверка типов и значений в edges
-        $sourceTargetPairs = []; // Для отслеживания уникальных комбинаций source и target
+        // Перевірка типів і значень в edges
+        $sourceTargetPairs = []; // Для відстежування унікальних комбінацій source и target
         foreach ($graph['edges'] as $edge) {
             if (!is_string($edge['source']) || !is_string($edge['target']) || !is_float($edge['successChance'])) {
                 throw new \Exception('Invalid types in an edge, source and target must be strings
-                , while successChance must me a float'); // Если типы не соответствуют ожидаемым, возвращаем false
+                , while successChance must me a float'); // Якщо типи не відповідають очікуваним, повертаємо помилку
             }
-            // Проверка, что source и target являются допустимыми значениями из nodes
+            // Перевіряємо, що source и target є допустимими значеннями із nodes
             if (!in_array($edge['source'], $graph['nodes']) || !in_array($edge['target'], $graph['nodes'])) {
                 throw new \Exception('Non existing node used in edge');
             }
-            // Проверка, что source и target различны
+            // Перевіряємо, що source та target різні
             if ($edge['source'] === $edge['target']) {
                 throw new \Exception('Values of source and target can not be the same');
             }
-            // Сортируем source и target для однозначного определения порядка
+            // Сортуємо source та target
             $sortedPair = [$edge['source'], $edge['target']];
             sort($sortedPair);
             $pairKey = implode('-', $sortedPair);
-            // Проверка на уникальность комбинации source и target
+            // Перевіряємо унікальність комбінації source и target
             if (in_array($pairKey, $sourceTargetPairs)) {
                 throw new \Exception('Combinations of source and target are not unique ' . $pairKey);
             }
             $sourceTargetPairs[] = $pairKey;
-            // Проверка диапазона значений successChance
+            // Перевіряємо діапазон значень successChance
             if ($edge['successChance'] < 0 || $edge['successChance'] > 1) {
                 throw new \Exception('Value of successChance must be between 0 and 1');
             }

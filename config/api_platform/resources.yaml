@@ -5,9 +5,9 @@ resources:
       simple_search:
         uriTemplate: '/functional_stability/simple_search'
         class: 'ApiPlatform\Metadata\Post'
-        input: 'App\FunctionalStability\Domain\DTO\SimpleSearchDTO'
+        input: 'App\FunctionalStability\Domain\DTO\FunctionalStabilityInputDTO'
         processor: 'App\FunctionalStability\Application\Processor\SimpleSearchProcessor'
       ApiPlatform\Metadata\Post:
         uriTemplate: '/functional_stability/structural_transformation'
-        input: 'App\FunctionalStability\Domain\DTO\SimpleSearchDTO'
+        input: 'App\FunctionalStability\Domain\DTO\FunctionalStabilityInputDTO'
         processor: 'App\FunctionalStability\Application\Processor\StructuralTransformationProcessor'

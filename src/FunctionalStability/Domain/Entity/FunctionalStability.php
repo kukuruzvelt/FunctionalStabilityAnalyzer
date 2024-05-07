@@ -78,81 +78,42 @@ final class FunctionalStability
         return $this;
     }
 
-    private function getAllNodePairs($nodes): array
+    public function countXG(array $graph = []): int
     {
-        $pairs = [];
-        $numNodes = count($nodes);
+        $xG = 1;
+        if (!$graph) {
+            $graph = $this->graph;
+        }
 
-        for ($i = 0; $i < $numNodes; $i++) {
-            for ($j = $i + 1; $j < $numNodes; $j++) {
-                $pairs[] = [$nodes[$i], $nodes[$j]];
+        // По черзі прибираємо кожну з вершин, аби пересвідчитись, що граф залишить з'язним
+        for ($i = 0; $i < count($graph['nodes']); $i++) {
+            $tempGraph = $this->removeNodeFromGraph($graph, $i);
+            if (!count($tempGraph['nodes']) > 1 || !$this->isConnectedGraph($tempGraph)) {
+                return $xG;
             }
         }
 
-        return $pairs;
+        // Якщо так, збільшуємо показник на 1 та повторюємо алгоритм вже без одної вершини
+        return $xG + $this->countXG($this->removeNodeFromGraph($graph, 0));
     }
 
-    private function getAllEdgeCombinations($edges): array
+    public function countAlphaG(array $graph = [])
     {
-        $numEdges = count($edges);
-        $combinations = [];
-
-        // Генерируем все числа от 0 до 2^numEdges - 1
-        for ($i = 0; $i < pow(2, $numEdges); $i++) {
-            $combination = [];
-            // Преобразуем число в двоичную строку длиной numEdges
-            $binary = str_pad(decbin($i), $numEdges, '0', STR_PAD_LEFT);
-            // Для каждого ребра определяем его состояние (присутствует или отсутствует)
-            for ($j = 0; $j < $numEdges; $j++) {
-                $combination[] = $binary[$j] === '1'; // Преобразуем '1' в true, '0' в false
-            }
-            $combinations[] = $combination;
+        $alphaG = 1;
+        if (!$graph) {
+            $graph = $this->graph;
         }
 
-        return $combinations;
-    }
-
-    private function hasPathBetweenNodesWithEdgeCombination($edges, $source, $target, $edgeCombination): bool
-    {
-        $graph = $this->buildGraph($edges, $edgeCombination);
-        $visited = [];
-        return $this->hasPathDFS($graph, $source, $target, $visited);
-    }
-
-    // Функция поиска в глубину (DFS) для проверки существования пути между вершинами
-    private function hasPathDFS($graph, $source, $target, &$visited): bool
-    {
-        if ($source === $target) {
-            return true; // Найден путь
-        }
-        if (!key_exists($source, $graph)) {
-            return false;
-        }
-        $visited[$source] = true;
-        foreach ($graph[$source] as $neighbor) {
-            if (!isset($visited[$neighbor])) {
-                if ($this->hasPathDFS($graph, $neighbor, $target, $visited)) {
-                    return true; // Найден путь
-                }
+        // По черзі прибираємо кожне з ребер, аби пересвідчитись, що граф залишить з'язним
+        for ($i = 0; $i < count($graph['edges']); $i++) {
+            $tempGraph = $this->removeEdgeByIndex($graph, $i);
+            if (!count($tempGraph['edges']) > 1 || !$this->isConnectedGraph($tempGraph)) {
+                return $alphaG;
             }
         }
-        return false; // Путь не найден
-    }
 
-    // Функция для построения графа на основе списка рёбер и комбинации рёбер
-    public function buildGraph($edges, $edgeCombination): array
-    {
-        $graph = [];
-        foreach ($edges as $key => $edge) {
-            if ($edgeCombination[$key]) { // Проверяем, присутствует ли ребро в комбинации
-                $source = $edge['source'];
-                $target = $edge['target'];
-                $graph[$source][] = $target;
-                // Учитываем и обратное направление ребра
-                $graph[$target][] = $source;
-            }
-        }
-        return $graph;
+        // Якщо так, збільшуємо показник на 1 та повторюємо алгоритм вже без одного ребра
+        return $alphaG + $this->countAlphaG($this->removeEdgeByIndex($graph, 0));
     }
 
     public function countProbabilitiesSimpleSearch(): array
@@ -204,10 +165,86 @@ final class FunctionalStability
         return $result;
     }
 
+    private function getAllNodePairs($nodes): array
+    {
+        $pairs = [];
+        $numNodes = count($nodes);
+
+        for ($i = 0; $i < $numNodes; $i++) {
+            for ($j = $i + 1; $j < $numNodes; $j++) {
+                $pairs[] = [$nodes[$i], $nodes[$j]];
+            }
+        }
+
+        return $pairs;
+    }
+
+    private function getAllEdgeCombinations($edges): array
+    {
+        $numEdges = count($edges);
+        $combinations = [];
+
+        // Генеруємо всі числа від 0 до 2^numEdges - 1
+        for ($i = 0; $i < pow(2, $numEdges); $i++) {
+            $combination = [];
+            // Перетворимо число на двійковий рядок довжиною numEdges
+            $binary = str_pad(decbin($i), $numEdges, '0', STR_PAD_LEFT);
+            // Для кожного ребра визначаємо його стан (присутнє чи відсутнє)
+            for ($j = 0; $j < $numEdges; $j++) {
+                $combination[] = $binary[$j] === '1'; // Перетворюємо '1' на true, '0' на false
+            }
+            $combinations[] = $combination;
+        }
+
+        return $combinations;
+    }
+
+    private function hasPathBetweenNodesWithEdgeCombination($edges, $source, $target, $edgeCombination): bool
+    {
+        $graph = $this->buildGraph($edges, $edgeCombination);
+        $visited = [];
+        return $this->hasPathDFS($graph, $source, $target, $visited);
+    }
+
+    // Функція пошуку в глибину (DFS) для перевірки існування шляху між вершинами
+    private function hasPathDFS($graph, $source, $target, &$visited): bool
+    {
+        if ($source === $target) {
+            return true; // Найден путь
+        }
+        if (!key_exists($source, $graph)) {
+            return false;
+        }
+        $visited[$source] = true;
+        foreach ($graph[$source] as $neighbor) {
+            if (!isset($visited[$neighbor])) {
+                if ($this->hasPathDFS($graph, $neighbor, $target, $visited)) {
+                    return true; // Найден путь
+                }
+            }
+        }
+        return false; // Путь не найден
+    }
+
+    // Функція для побудови графа на основі списку ребер та комбінації ребер
+    private function buildGraph($edges, $edgeCombination): array
+    {
+        $graph = [];
+        foreach ($edges as $key => $edge) {
+            if ($edgeCombination[$key]) { // Перевіряємо, чи є ребро в комбінації
+                $source = $edge['source'];
+                $target = $edge['target'];
+                $graph[$source][] = $target;
+                // Враховуємо і зворотний напрямок ребра
+                $graph[$target][] = $source;
+            }
+        }
+        return $graph;
+    }
 
     private function hasPathDFSWithContractedNodes($graph, $source, $target, &$visited): bool
     {
-        // Проверяем, существует ли вершина $source в графе
+        // Перевіряємо, чи існує вершина $source у графі
         $found = false;
         foreach ($graph['nodes'] as $node) {
             if (str_contains($node, $source) && str_contains($node, $target)) {
@@ -222,40 +259,40 @@ final class FunctionalStability
             return false;
         }
 
-        // Проверяем, достигли ли мы целевой вершины
+        // Перевіряємо, чи ми досягли цільової вершини
         if ($source === $target) {
             return true; // Найден путь
         }
 
-        // Проверяем, есть ли соседи у текущей вершины
+        // Перевіряємо, чи є сусіди поточної вершини
         if (!isset($graph['edges']) || empty($graph['edges'])) {
             return false;
         }
 
-        // Помечаем текущую вершину как посещенную
+        // Позначаємо поточну вершину як відвідану
         $visited[$source] = true;
 
-        // Перебираем все рёбра графа
+        // Перебираємо всі ребра графа
         foreach ($graph['edges'] as $edge) {
             $edgeSource = $edge['source'];
             $edgeTarget = $edge['target'];
 
-            // Проверяем, инцидентно ли текущее ребро нашей вершине
+            // Перевіряємо, чи поточне ребро інцидентно нашій вершині
             if (strpos($edgeSource, $source) !== false || strpos($edgeTarget, $source) !== false) {
                 // Определяем вершину, к которой ведет текущее ребро
                 $neighbor = ($edgeSource === $source) ? $edgeTarget : $edgeSource;
 
-                // Проверяем, посещали ли мы уже эту вершину
+                // Перевіряємо, чи відвідували ми вже цю вершину
                 if (!isset($visited[$neighbor])) {
-                    // Если мы еще не посещали эту вершину, рекурсивно ищем путь от нее до целевой вершины
+                    // Якщо ми ще не відвідували цю вершину, рекурсивно шукаємо шлях від неї до цільової вершини
                     if ($this->hasPathDFSWithContractedNodes($graph, $neighbor, $target, $visited)) {
-                        return true; // Найден путь
+                        return true; // Знайдено шлях
                     }
                 }
             }
         }
 
-        // Если мы дошли до этой точки, значит, путь не найден
+        // Якщо ми дійшли до цієї точки, значить, шлях не знайдено
         return false;
     }
 
@@ -268,17 +305,21 @@ final class FunctionalStability
         $edgeIndex = 0;
         $edge = $graph['edges'][$edgeIndex];
 
+        // Стягуємо ребро графа
         $graphWithContractedEdge = $this->contractEdge($graph, $edgeIndex);
         if (count($graphWithContractedEdge['edges']) > 0) {
+            // Якщо залишилось більше одно ребра, рекурсивно повторюємо алгоритм
             $probability += ($edge["successChance"] * $this->countProbabilityForNodePairStructuralTransformation($graphWithContractedEdge, $source, $target));
         } else {
             $probability += $edge["successChance"];
         }
 
-        $graphWithRemovedEdge = $this->removeEdge($graph, $edgeIndex);
+        // Прибираємо ребро графа
+        $graphWithRemovedEdge = $this->removeEdgeByIndex($graph, $edgeIndex);
         $visited = [];
         if ($this->hasPathDFSWithContractedNodes($graphWithRemovedEdge, $source, $target, $visited)) {
             if (count($graphWithRemovedEdge['edges']) > 0) {
+                // Якщо залишилось більше одно ребра, рекурсивно повторюємо алгоритм
                 $probability += ((1 - $edge["successChance"]) * $this->countProbabilityForNodePairStructuralTransformation($graphWithRemovedEdge, $source, $target));
             } else {
                 $probability += (1 - $edge["successChance"]);
@@ -290,32 +331,32 @@ final class FunctionalStability
 
     private function contractEdge(array $graph, int $edgeIndex): array
     {
-        // Получаем ребро по индексу
+        // Отримуємо ребро за індексом
         $edge = $graph['edges'][$edgeIndex];
         $source = $edge['source'];
         $target = $edge['target'];
 
-        // Создаем новую вершину, которая объединяет вершины source и target
+        // Створюємо нову вершину, яка об'єднує вершини source та target
         $newNode = $source . '|' . $target;
 
-        // Удаляем вершины source и target из списка вершин
+        // Видаляємо вершини source і target зі списку вершин
         $nodes = array_diff($graph['nodes'], [$source, $target]);
 
-        // Добавляем новую вершину в список вершин
+        // Додаємо нову вершину до списку вершин
         $nodes[] = $newNode;
 
-        // Создаем новые ребра, соединяющие новую вершину с вершинами, смежными source и target
+        // Створюємо нові ребра, що з'єднують нову вершину з вершинами, суміжними source та target
         $edges = [];
         foreach ($graph['edges'] as $currentEdgeIndex => $currentEdge) {
             $currentSource = $currentEdge['source'];
             $currentTarget = $currentEdge['target'];
 
-            // Исключаем ребро, по которому осуществлялось стягивание
+            // Виключаємо ребро, яким здійснювалося стягування
             if ($currentEdgeIndex === $edgeIndex) {
                 continue;
             }
 
-            // Если текущее ребро инцидентно одной из стягиваемых вершин, заменяем её новой вершиной
+            // Якщо поточне ребро інцидентно однією з вершин, що стягуються, замінюємо її новою вершиною
             if ($currentSource === $source || $currentSource === $target) {
                 $currentEdge['source'] = $newNode;
             }
@@ -323,7 +364,7 @@ final class FunctionalStability
                 $currentEdge['target'] = $newNode;
             }
 
-            // Добавляем ребро в список, если оно не было исключено
+            // Додаємо ребро до списку, якщо воно не було виключено
             $edges[] = $currentEdge;
         }
 
@@ -333,18 +374,18 @@ final class FunctionalStability
         ];
     }
 
-    private function removeEdge(array $graph, int $index): array
+    private function removeEdgeByIndex(array $graph, int $index): array
     {
-        // Проверяем, существует ли ребро с указанным индексом в списке рёбер
+        // Перевіряємо, чи існує ребро із зазначеним індексом у списку ребер
         if (isset($graph['edges'][$index])) {
-            // Удаляем ребро с указанным индексом из списка рёбер
+            // Видаляємо ребро із зазначеним індексом зі списку ребер
             unset($graph['edges'][$index]);
 
-            // Переиндексируем массив рёбер, чтобы индексы начинались с 0
+            // Переіндексуємо масив ребер, щоб індекси починалися з 0
             $graph['edges'] = array_values($graph['edges']);
         }
 
-        // Возвращаем новый граф с удаленным ребром
+        // Повертаємо новий граф із віддаленим рубом
         return $graph;
     }
 
@@ -361,7 +402,7 @@ final class FunctionalStability
             return false;
         }
 
-        // Создаем матрицу смежности для графа
+        // Створюємо матрицю суміжності для графа
         $adjMatrix = [];
         foreach ($nodes as $node1) {
             $adjMatrix[$node1] = array_fill(0, $n, false);
@@ -370,26 +411,26 @@ final class FunctionalStability
             $source = $edge['source'];
             $target = $edge['target'];
             $adjMatrix[$source][$target] = true;
-            $adjMatrix[$target][$source] = true; // Учитываем двусторонние рёбра
+            $adjMatrix[$target][$source] = true; // Враховуємо двосторонні ребра
         }
 
-        // Выбираем произвольную вершину в качестве начальной для обхода
+        // Вибираємо довільну вершину як початкову для обходу
         $startNode = reset($nodes);
 
-        // Проверяем связность графа, запуская DFS от начальной вершины
+        // Перевіряємо зв'язок графа, запускаючи DFS від початкової вершини
         $visited = [];
         $this->dfs($adjMatrix, $startNode, $visited);
 
-        // Если все вершины посещены, граф связный
+        // Якщо всі вершини відвідані, граф зв'язний
         return count($visited) === $n;
     }
 
     private function dfs($adjMatrix, $source, &$visited): void
     {
-        // Помечаем текущую вершину как посещённую
+        // Позначаємо поточну вершину як відвідану
         $visited[$source] = true;
 
-        // Рекурсивно обходим все смежные вершины
+        // Рекурсивно обходимо всі суміжні вершини
         foreach (array_keys($adjMatrix[$source]) as $neighbor) {
             if ($adjMatrix[$source][$neighbor] && !isset($visited[$neighbor])) {
                 $this->dfs($adjMatrix, $neighbor, $visited);
@@ -397,28 +438,11 @@ final class FunctionalStability
         }
     }
 
-    public function countXG(array $graph = []): int
-    {
-        $xG = 1;
-        if (!$graph) {
-            $graph = $this->graph;
-        }
-
-        for ($i = 0; $i < count($graph['nodes']); $i++) {
-            $tempGraph = $this->removeNodeFromGraph($graph, $i);
-            if (!count($tempGraph['nodes']) > 1 || !$this->isConnectedGraph($tempGraph)) {
-                return $xG;
-            }
-        }
-
-        return $xG + $this->countXG($this->removeNodeFromGraph($graph, 0));
-    }
-
     private function removeNodeFromGraph(array $graph, int $nodeIndex): array
     {
         $vertexToRemove = $graph['nodes'][$nodeIndex];
 
-        // Удаляем все ребра, инцидентные заданной вершине
+        // Видаляємо всі ребра, інцидентні заданій вершині
         $edgesToRemove = [];
         foreach ($graph['edges'] as $key => $edge) {
             if ($edge['source'] === $vertexToRemove || $edge['target'] === $vertexToRemove) {
@@ -428,36 +452,12 @@ final class FunctionalStability
         foreach ($edgesToRemove as $key) {
             unset($graph['edges'][$key]);
         }
-        $graph['edges'] = array_values($graph['edges']); // Перенумеруем ключи
+        $graph['edges'] = array_values($graph['edges']); // Перенумеруємо ключі
 
-        // Удаляем саму заданную вершину из списка вершин графа
+        // Видаляємо саму задану вершину зі списку вершин графа
         unset($graph['nodes'][$nodeIndex]);
-        $graph['nodes'] = array_values($graph['nodes']); // Перенумеруем ключи
+        $graph['nodes'] = array_values($graph['nodes']); // Перенумеруємо ключі
 
-        return $graph;
-    }
-
-    public function countAlphaG(array $graph = [])
-    {
-        $alphaG = 1;
-        if (!$graph) {
-            $graph = $this->graph;
-        }
-
-        for ($i = 0; $i < count($graph['edges']); $i++) {
-            $tempGraph = $this->removeEdgeFromGraph($graph, $i);
-            if (!count($tempGraph['edges']) > 1 || !$this->isConnectedGraph($tempGraph)) {
-                return $alphaG;
-            }
-        }
-
-        return $alphaG + $this->countAlphaG($this->removeEdgeFromGraph($graph, 0));
-    }
-
-    private function removeEdgeFromGraph(array $graph, int $edgeIndex): array
-    {
-        unset($graph['edges'][$edgeIndex]);
-        $graph['edges'] = array_values($graph['edges']); // Перенумеруем ключи
         return $graph;
     }
 }

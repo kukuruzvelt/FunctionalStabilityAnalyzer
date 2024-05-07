@@ -8,13 +8,13 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\OpenApi\Model\Response;
 use ApiPlatform\State\ProcessorInterface;
 use App\FunctionalStability\Application\Validator\GraphMatrixValidator;
-use App\FunctionalStability\Domain\DTO\SimpleSearchDTO;
+use App\FunctionalStability\Domain\DTO\FunctionalStabilityInputDTO;
 use App\FunctionalStability\Domain\Entity\FunctionalStability;
 use App\FunctionalStability\Infrastructure\FunctionalStabilityRepository;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * @implements ProcessorInterface<SimpleSearchDTO, Response>
+ * @implements ProcessorInterface<FunctionalStabilityInputDTO, Response>
  */
 class StructuralTransformationProcessor implements ProcessorInterface
 {
@@ -26,6 +26,7 @@ class StructuralTransformationProcessor implements ProcessorInterface
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): Response
     {
+        // Засікаємо час
         $startTime = $this->getCurrentMicroseconds();
 
         $graph = [
@@ -33,8 +34,10 @@ class StructuralTransformationProcessor implements ProcessorInterface
             "edges" => $data->edges
         ];
 
+        // Валідуємо граф
         $this->graphMatrixValidator->validate($graph);
 
+        // Обчислюємо параметри функціональної стійкості
         $functionalStability = new FunctionalStability($graph);
         $xG = $functionalStability->countXG();
         $alphaG = $functionalStability->countAlphaG();
@@ -44,9 +47,11 @@ class StructuralTransformationProcessor implements ProcessorInterface
         $functionalStability->setAlphaG($alphaG);
         $functionalStability->setProbabilities($probabilityMatrix);
 
+        // Генеруємо id
         $id = Uuid::v7();
         $functionalStability->setId($id);
 
+        // Зберігаємо результат в базу даних
         $this->repository->save($functionalStability);
 
         return new Response(
