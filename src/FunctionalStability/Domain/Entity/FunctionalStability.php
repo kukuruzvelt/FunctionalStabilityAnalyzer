@@ -13,6 +13,8 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\Entity(repositoryClass: FunctionalStabilityRepository::class)]
 final class FunctionalStability
 {
+    private const SEPARATOR = '|';
+
     public function __construct(private array $graph)
     {
     }
@@ -250,7 +252,7 @@ final class FunctionalStability
             if (str_contains($node, $source) && str_contains($node, $target)) {
                 return true;
             }
-            if ($node === $source || strpos($node, '|') !== false && in_array($source, explode('|', $node))) {
+            if ($node === $source || strpos($node, self::SEPARATOR) !== false && in_array($source, explode(self::SEPARATOR, $node))) {
                 $found = true;
                 break;
             }
@@ -337,7 +339,7 @@ final class FunctionalStability
         $target = $edge['target'];
 
         // Створюємо нову вершину, яка об'єднує вершини source та target
-        $newNode = $source . '|' . $target;
+        $newNode = $source . self::SEPARATOR . $target;
 
         // Видаляємо вершини source і target зі списку вершин
         $nodes = array_diff($graph['nodes'], [$source, $target]);
