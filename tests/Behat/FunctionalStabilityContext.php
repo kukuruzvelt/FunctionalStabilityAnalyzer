@@ -15,6 +15,7 @@ class FunctionalStabilityContext implements Context
 {
     private array $nodes;
     private array $edges;
+    private float $targetProbability;
     private Response $simpleSearchResponse;
     private Response $structuralTransformationResponse;
 
@@ -48,6 +49,14 @@ class FunctionalStabilityContext implements Context
     }
 
     /**
+     * @Given target probability :targetProbability
+     */
+    public function addTargetProbability(float $targetProbability): void
+    {
+        $this->targetProbability = $targetProbability;
+    }
+
+    /**
      * @When graph is send to Simple Search endpoint
      */
     public function requestSendTo(): void
@@ -64,6 +73,7 @@ class FunctionalStabilityContext implements Context
             ],
             $this->serializer->serialize(
                 [
+                    'targetProbability' => $this->targetProbability,
                     'nodes' => $this->nodes,
                     'edges' => $this->edges
                 ],
@@ -88,6 +98,7 @@ class FunctionalStabilityContext implements Context
             ],
             $this->serializer->serialize(
                 [
+                    'targetProbability' => $this->targetProbability,
                     'nodes' => $this->nodes,
                     'edges' => $this->edges
                 ],

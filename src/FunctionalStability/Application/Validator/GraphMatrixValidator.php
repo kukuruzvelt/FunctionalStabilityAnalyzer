@@ -8,7 +8,7 @@ use App\FunctionalStability\Domain\Entity\FunctionalStability;
 
 class GraphMatrixValidator
 {
-    public function validate($graph): void
+    public function validateGraph($graph): void
     {
         // Перевірка типів і значень в nodes
         foreach ($graph['nodes'] as $node) {
@@ -42,7 +42,7 @@ class GraphMatrixValidator
             }
             $sourceTargetPairs[] = $pairKey;
             // Перевіряємо діапазон значень successChance
-            if ($edge['successChance'] < 0 || $edge['successChance'] > 1) {
+            if ($edge['successChance'] <= 0 || $edge['successChance'] > 1) {
                 throw new \Exception('Value of successChance must be between 0 and 1');
             }
         }
@@ -51,6 +51,13 @@ class GraphMatrixValidator
 
         if(!$functionalStability->isConnectedGraph()) {
             throw new \Exception('Graph is not connected');
+        }
+    }
+
+    public function validateTargetProbability($targetProbability): void
+    {
+        if ($targetProbability <= 0 || $targetProbability > 1) {
+            throw new \Exception('Value of targetProbability must be between 0 and 1');
         }
     }
 }

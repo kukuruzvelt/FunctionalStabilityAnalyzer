@@ -28,11 +28,14 @@ final readonly class SimpleSearchProcessor implements ProcessorInterface
     {
         $graph = [
             "nodes" => $data->nodes,
-            "edges" => $data->edges
+            "edges" => $data->edges,
         ];
 
+        $targetProbability = $data->targetProbability;
+
         // Валідуємо граф
-        $this->graphMatrixValidator->validate($graph);
+        $this->graphMatrixValidator->validateGraph($graph);
+        $this->graphMatrixValidator->validateTargetProbability($targetProbability);
 
         // Засікаємо час
         $startTime = $this->getCurrentMicroseconds();
@@ -54,9 +57,22 @@ final readonly class SimpleSearchProcessor implements ProcessorInterface
         // Зберігаємо результат в базу даних
         $this->repository->save($functionalStability);
 
+        // Визначаємо, чи є граф функціонально стійким
+        $stable = true;
+        if ($xG < 2 || $alphaG < 2){
+            $stable = false;
+        }
+        else foreach ($probabilityMatrix as $probability){
+            if($probability['probability'] < $targetProbability){
+                $stable = false;
+                break;
+            }
+        }
+
         return new Response(
             content: new \ArrayObject(
                 [
+                    "isStable" => $stable,
                     "id" => (string) $id,
                     "execTimeMilliseconds" => $this->getCurrentMicroseconds() - $startTime,
                     "x(G)" => $functionalStability->getXG(),

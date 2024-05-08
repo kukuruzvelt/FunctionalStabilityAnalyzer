@@ -10,6 +10,7 @@ Feature:
     And edge with source "1" target "2" and success chance 0.9
     And edge with source "2" target "3" and success chance 0.8
     And edge with source "1" target "3" and success chance 0.7
+    And target probability 0.5
     When graph is send to Simple Search endpoint
     And graph is send to Structural Transformation endpoint
     Then the results should be equal

@@ -5,3 +5,8 @@ App\FunctionalStability\Domain\DTO\SimpleSearchDTO:
       - NotBlank: ~
     edges:
       - NotNull: ~
+    targetProbability:
+      - NotNull: ~
+      - NotBlank: ~
+      - Type:
+          type: float
