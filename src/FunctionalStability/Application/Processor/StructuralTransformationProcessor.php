@@ -59,13 +59,14 @@ class StructuralTransformationProcessor implements ProcessorInterface
 
         // Визначаємо, чи є граф функціонально стійким
         $stable = true;
-        if ($xG < 2 || $alphaG < 2){
+        if ($xG < 2 || $alphaG < 2) {
             $stable = false;
-        }
-        else foreach ($probabilityMatrix as $probability){
-            if($probability['probability'] < $targetProbability){
-                $stable = false;
-                break;
+        } else {
+            foreach ($probabilityMatrix as $probability) {
+                if($probability['probability'] < $targetProbability) {
+                    $stable = false;
+                    break;
+                }
             }
         }
 
