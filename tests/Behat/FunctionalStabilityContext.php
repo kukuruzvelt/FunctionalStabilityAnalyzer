@@ -115,7 +115,7 @@ class FunctionalStabilityContext implements Context
         $structuralTransformationResponseData =
             json_decode($this->structuralTransformationResponse->getContent(), true)['content'];
 
-        $precision = 0.0001; // Предельная погрешность
+        $precision = 0.0001;
         Assert::assertEqualsWithDelta(
             $simpleSearchResponseData['probabilityMatrix'],
             $structuralTransformationResponseData['probabilityMatrix'],

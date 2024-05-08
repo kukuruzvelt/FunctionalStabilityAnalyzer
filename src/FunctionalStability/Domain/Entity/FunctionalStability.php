@@ -88,7 +88,7 @@ final class FunctionalStability
         // По черзі прибираємо кожну з вершин, аби пересвідчитись, що граф залишить з'язним
         for ($i = 0; $i < count($graph['nodes']); $i++) {
             $tempGraph = $this->removeNodeFromGraph($graph, $i);
-            if (!count($tempGraph['nodes']) > 1 || !$this->isConnectedGraph($tempGraph)) {
+            if (!$this->isConnectedGraph($tempGraph)) {
                 return $xG;
             }
         }
@@ -107,7 +107,7 @@ final class FunctionalStability
         // По черзі прибираємо кожне з ребер, аби пересвідчитись, що граф залишить з'язним
         for ($i = 0; $i < count($graph['edges']); $i++) {
             $tempGraph = $this->removeEdgeByIndex($graph, $i);
-            if (!count($tempGraph['edges']) > 1 || !$this->isConnectedGraph($tempGraph)) {
+            if (!$this->isConnectedGraph($tempGraph)) {
                 return $alphaG;
             }
         }

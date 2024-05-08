@@ -26,9 +26,6 @@ final readonly class SimpleSearchProcessor implements ProcessorInterface
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): Response
     {
-        // Засікаємо час
-        $startTime = $this->getCurrentMicroseconds();
-
         $graph = [
             "nodes" => $data->nodes,
             "edges" => $data->edges
@@ -36,6 +33,9 @@ final readonly class SimpleSearchProcessor implements ProcessorInterface
 
         // Валідуємо граф
         $this->graphMatrixValidator->validate($graph);
+
+        // Засікаємо час
+        $startTime = $this->getCurrentMicroseconds();
 
         // Обчислюємо параметри функціональної стійкості
         $functionalStability = new FunctionalStability($graph);
