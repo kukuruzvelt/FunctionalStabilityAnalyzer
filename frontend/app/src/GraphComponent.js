@@ -7,9 +7,9 @@ let nodeId = 4; // начальный id для новых узлов
 
 const GraphComponent = () => {
     const [nodes, setNodes, onNodesChange] = useNodesState([
-        { id: '1', data: { label: 'Node 1' }, position: { x: 250, y: 5 } },
-        { id: '2', data: { label: 'Node 2' }, position: { x: 100, y: 100 } },
-        { id: '3', data: { label: 'Node 3' }, position: { x: 400, y: 100 } }
+        { id: '1', data: { label: '1' }, position: { x: 250, y: 5 } },
+        { id: '2', data: { label: '2' }, position: { x: 100, y: 100 } },
+        { id: '3', data: { label: '3' }, position: { x: 400, y: 100 } }
     ]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([
         { id: 'e1-2', source: '1', target: '2', label: '0.5' },
@@ -18,6 +18,7 @@ const GraphComponent = () => {
 
     const { project } = useReactFlow();
     const [tableData, setTableData] = useState([]);
+    const [targetProbability, setTargetProbability] = useState(0.5);
     const [edgeDialogOpen, setEdgeDialogOpen] = useState(false);
     const [newEdge, setNewEdge] = useState({ id: '', source: '', target: '', value: 0.5 });
 
@@ -32,7 +33,7 @@ const GraphComponent = () => {
         if (element && element.closest('.react-flow__node')) return;
 
         const id = `${nodeId++}`;
-        setNodes((nds) => nds.concat({ id, data: { label: `Node ${id}` }, position }));
+        setNodes((nds) => nds.concat({ id, data: { label: id }, position }));
     }, [project, setNodes]);
 
     const handleNodeClick = useCallback((event, node) => {
@@ -77,13 +78,34 @@ const GraphComponent = () => {
         }
     };
 
-    const handleSendGraph = () => {
+    const hasIsolatedNodes = (edges, nodes) => {
+        const connectedNodes = new Set();
+        edges.forEach(edge => {
+            connectedNodes.add(edge.source);
+            connectedNodes.add(edge.target);
+        });
+        return nodes.some(node => !connectedNodes.has(node.id));
+    };
+
+    const handleSendGraph = (endpoint) => {
+        if (hasIsolatedNodes(edges, nodes)) {
+            alert('There are isolated nodes in the graph. Please connect all nodes before sending.');
+            return;
+        }
+
         const graphData = {
-            nodes,
-            links: edges.map((el) => ({ source: el.source, target: el.target, value: el.label })),
+            nodes: nodes.map(node => node.id),
+            edges: edges.map(edge => ({
+                source: edge.source,
+                target: edge.target,
+                successChance: parseFloat(edge.label)
+            })),
+            targetProbability: parseFloat(targetProbability)
         };
 
-        axios.post('http://localhost:5000/graph', graphData)
+        console.log('Sending graph data to', endpoint, ':', graphData); // Вывод тела запроса в консоль
+
+        axios.post(`https://localhost:80/api/functional_stability/${endpoint}`, graphData)
             .then(response => {
                 setTableData(response.data);
             })
@@ -111,8 +133,20 @@ const GraphComponent = () => {
                     <Background color="#aaa" gap={16} />
                 </ReactFlow>
             </div>
-            <Button variant="contained" color="primary" onClick={handleSendGraph} style={{ marginTop: 20 }}>
-                Send Graph
+            <TextField
+                label="Target Probability"
+                type="number"
+                inputProps={{ min: "0", max: "1", step: "0.001" }}
+                value={targetProbability}
+                onChange={(e) => setTargetProbability(parseFloat(e.target.value))}
+                fullWidth
+                style={{ marginTop: 20 }}
+            />
+            <Button variant="contained" color="primary" onClick={() => handleSendGraph('simple_search')} style={{ marginTop: 20, marginRight: 10 }}>
+                Simple Search
+            </Button>
+            <Button variant="contained" color="secondary" onClick={() => handleSendGraph('structural_transformation')} style={{ marginTop: 20 }}>
+                Structural Transformation
             </Button>
             <TableContainer component={Paper} style={{ marginTop: 20 }}>
                 <Table>

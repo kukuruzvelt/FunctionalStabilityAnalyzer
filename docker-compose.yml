@@ -75,6 +75,15 @@ services:
           "--innodb_initialized"
         ]
 
+  frontend:
+    build:
+      context: ./frontend/app
+    restart: unless-stopped
+    ports:
+      - 3000:80
+    volumes:
+      - ./frontend/app:/app
+
 volumes:
   php_socket:
   caddy_data:

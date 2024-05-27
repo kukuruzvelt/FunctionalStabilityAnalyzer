@@ -28,5 +28,9 @@ services:
     networks:
       - user-service
 
+  frontend:
+    networks:
+      - user-service
+
 networks:
   user-service:
