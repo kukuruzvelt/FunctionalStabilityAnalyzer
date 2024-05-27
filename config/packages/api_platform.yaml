@@ -1,4 +1,7 @@
 api_platform:
+    title: 'Functional Stability API'
+    description: 'This API provides endpoints to get functional stability for for distributed information systems'
+    version: '1.0.0'
     defaults:
         extra_properties:
             rfc_7807_compliant_errors: true

@@ -1,5 +1,3 @@
-version: "3.8"
-
 # Development environment override
 services:
   php:
@@ -27,10 +25,6 @@ services:
       - ./infrastructure/docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
 
   database:
-    networks:
-      - user-service
-
-  redis:
     networks:
       - user-service
 
