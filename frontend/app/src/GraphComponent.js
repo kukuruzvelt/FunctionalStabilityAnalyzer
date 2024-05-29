@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
-import ReactFlow, { addEdge, MiniMap, Controls, Background, ReactFlowProvider, useNodesState, useEdgesState, useReactFlow } from 'react-flow-renderer';
+import ReactFlow, { MiniMap, Controls, Background, ReactFlowProvider, useNodesState, useEdgesState, useReactFlow } from 'react-flow-renderer';
 import axios from 'axios';
-import { Agent }  from 'https';
+import { Agent } from 'https';
 import { Button, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -92,7 +92,9 @@ const GraphComponent = () => {
 
     // Bypass self-signed certificate issues (for development purposes)
     const httpsAgent = new Agent({
-        rejectUnauthorized: false
+        rejectUnauthorized: false,
+        requestCert: false,
+        agent: false,
     });
 
     const handleSendGraph = (endpoint) => {
@@ -113,9 +115,16 @@ const GraphComponent = () => {
 
         console.log('Sending graph data to', endpoint, ':', graphData); // Вывод тела запроса в консоль
 
-        axios.post(`https://localhost/api/functional_stability/${endpoint}/`, graphData, {httpsAgent: httpsAgent })
+        axios.post(`https://localhost/api/functional_stability/${endpoint}`, graphData, { httpsAgent: httpsAgent })
             .then(response => {
-                setTableData(response.data);
+                console.log('Received response:', response.data); // Вывод ответа в консоль
+                const { probabilityMatrix } = response.data.content;
+                if (Array.isArray(probabilityMatrix)) {
+                    setTableData(probabilityMatrix);
+                } else {
+                    console.error('Response data does not contain probabilityMatrix:', response.data);
+                    setTableData([]);
+                }
             })
             .catch(error => {
                 console.error('There was an error sending the graph!', error);
@@ -166,11 +175,11 @@ const GraphComponent = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {tableData.map((row, index) => (
+                        {Array.isArray(tableData) && tableData.map((row, index) => (
                             <TableRow key={index}>
                                 <TableCell>{row.source}</TableCell>
                                 <TableCell>{row.target}</TableCell>
-                                <TableCell>{row.value}</TableCell>
+                                <TableCell>{row.probability}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

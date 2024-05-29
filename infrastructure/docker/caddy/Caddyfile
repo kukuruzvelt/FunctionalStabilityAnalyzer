@@ -10,8 +10,13 @@
 log
 
 route {
-    redir https://{host}{uri} permanent
     root * /srv/app/public
+
+     @options {
+            method OPTIONS
+        }
+        respond @options 204
+
     mercure {
         # Transport to use (default to Bolt)
         transport_url {$MERCURE_TRANSPORT_URL:bolt:///data/mercure.db}
