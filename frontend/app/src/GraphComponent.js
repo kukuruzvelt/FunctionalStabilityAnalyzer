@@ -1,7 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import ReactFlow, { addEdge, MiniMap, Controls, Background, ReactFlowProvider, useNodesState, useEdgesState, useReactFlow } from 'react-flow-renderer';
 import axios from 'axios';
+import { Agent }  from 'https';
 import { Button, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 let nodeId = 4; // начальный id для новых узлов
 
@@ -87,6 +90,11 @@ const GraphComponent = () => {
         return nodes.some(node => !connectedNodes.has(node.id));
     };
 
+    // Bypass self-signed certificate issues (for development purposes)
+    const httpsAgent = new Agent({
+        rejectUnauthorized: false
+    });
+
     const handleSendGraph = (endpoint) => {
         if (hasIsolatedNodes(edges, nodes)) {
             alert('There are isolated nodes in the graph. Please connect all nodes before sending.');
@@ -105,7 +113,7 @@ const GraphComponent = () => {
 
         console.log('Sending graph data to', endpoint, ':', graphData); // Вывод тела запроса в консоль
 
-        axios.post(`https://localhost:80/api/functional_stability/${endpoint}`, graphData)
+        axios.post(`https://localhost/api/functional_stability/${endpoint}/`, graphData, {httpsAgent: httpsAgent })
             .then(response => {
                 setTableData(response.data);
             })

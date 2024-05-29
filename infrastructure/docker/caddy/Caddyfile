@@ -1,8 +1,6 @@
 {
     # Debug
     {$CADDY_DEBUG}
-
-    auto_https disable_redirects
 }
 
 {$SERVER_NAME}
@@ -12,6 +10,7 @@
 log
 
 route {
+    redir https://{host}{uri} permanent
     root * /srv/app/public
     mercure {
         # Transport to use (default to Bolt)

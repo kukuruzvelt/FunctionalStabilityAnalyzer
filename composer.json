@@ -21,7 +21,6 @@
         "dpauli/graphql-request-builder": "^1.8",
         "fakerphp/faker": "^1.23.0",
         "lambdish/phunctional": "^2.1",
-        "nelmio/cors-bundle": "^2.4",
         "ramsey/uuid": "4.7.5",
         "sebastian/phpcpd": "^6.0",
         "symfony/asset": "^6.3",
