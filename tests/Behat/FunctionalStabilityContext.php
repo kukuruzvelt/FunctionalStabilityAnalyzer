@@ -117,9 +117,21 @@ class FunctionalStabilityContext implements Context
     }
 
     /**
+     * @Then validation error should be :error
+     */
+    public function validationErrorShouldBe(string $error): void
+    {
+        Assert::assertEquals(
+            json_decode($this->simpleSearchResponse->getContent(), true)['detail'],
+            $error
+        );
+    }
+
+
+    /**
      * @Then the results should be equal
      */
-    public function theResponseStatusCodeShouldBe(): void
+    public function theResultsShouldBeEqual(): void
     {
         $simpleSearchResponseData =
             json_decode($this->simpleSearchResponse->getContent(), true)['content'];
@@ -133,12 +145,12 @@ class FunctionalStabilityContext implements Context
             $precision
         );
         Assert::assertEquals(
-            $simpleSearchResponseData['x(G)'],
-            $structuralTransformationResponseData['x(G)']
+            $simpleSearchResponseData['xG'],
+            $structuralTransformationResponseData['xG']
         );
         Assert::assertEquals(
-            $simpleSearchResponseData['λ(G)'],
-            $structuralTransformationResponseData['λ(G)']
+            $simpleSearchResponseData['λG'],
+            $structuralTransformationResponseData['λG']
         );
     }
 }
