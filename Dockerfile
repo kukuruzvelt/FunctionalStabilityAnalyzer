@@ -44,12 +44,9 @@ RUN apk add --no-cache \
 RUN set -eux; \
     install-php-extensions \
         	intl \
-        	zip \
         	apcu \
     		opcache \
             pdo_mysql \
-            redis \
-            openssl \
             xsl \
     ;
 

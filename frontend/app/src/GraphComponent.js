@@ -1,8 +1,16 @@
 import React, { useState, useCallback } from 'react';
-import ReactFlow, { MiniMap, Controls, Background, ReactFlowProvider, useNodesState, useEdgesState, useReactFlow } from 'react-flow-renderer';
+import ReactFlow, {
+    MiniMap,
+    Controls,
+    Background,
+    ReactFlowProvider,
+    useNodesState,
+    useEdgesState,
+    useReactFlow
+} from 'react-flow-renderer';
 import axios from 'axios';
 import { Agent } from 'https';
-import { Button, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Button, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogTitle, DialogContent, DialogActions, Typography, Menu, MenuItem } from '@mui/material';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -21,11 +29,16 @@ const GraphComponent = () => {
 
     const { project } = useReactFlow();
     const [tableData, setTableData] = useState([]);
+    const [additionalData, setAdditionalData] = useState({});
     const [targetProbability, setTargetProbability] = useState(0.5);
     const [edgeDialogOpen, setEdgeDialogOpen] = useState(false);
     const [newEdge, setNewEdge] = useState({ id: '', source: '', target: '', value: 0.5 });
 
     const [edgeNodes, setEdgeNodes] = useState([]); // отслеживание выбранных узлов для ребра
+
+    // Menu state for edge deletion
+    const [menuAnchorEl, setMenuAnchorEl] = useState(null);
+    const [selectedEdge, setSelectedEdge] = useState(null);
 
     const handleAddNode = useCallback((event) => {
         const bounds = event.target.getBoundingClientRect();
@@ -55,12 +68,22 @@ const GraphComponent = () => {
 
     const handleEdgeClick = useCallback((event, edge) => {
         event.stopPropagation();
+        setSelectedEdge(edge);
         setNewEdge({ id: edge.id, source: edge.source, target: edge.target, value: parseFloat(edge.label) });
         setEdgeDialogOpen(true);
     }, []);
 
+    const handleEdgeRightClick = useCallback((event, edge) => {
+        event.preventDefault();
+        setSelectedEdge(edge);
+        setMenuAnchorEl(event.currentTarget);
+    }, []);
+
     const handleEdgeWeightChange = (event) => {
-        setNewEdge({ ...newEdge, value: parseFloat(event.target.value) });
+        setNewEdge(prevEdge => ({
+            ...prevEdge,
+            value: parseFloat(event.target.value)
+        }));
     };
 
     const handleAddEdge = () => {
@@ -78,6 +101,14 @@ const GraphComponent = () => {
             setEdgeDialogOpen(false);
         } else {
             alert('Edge weight must be between 0 and 1.');
+        }
+    };
+
+    const handleDeleteEdge = () => {
+        if (selectedEdge) {
+            setEdges((eds) => eds.filter((e) => e.id !== selectedEdge.id));
+            setMenuAnchorEl(null);
+            setEdgeDialogOpen(false);
         }
     };
 
@@ -118,7 +149,8 @@ const GraphComponent = () => {
         axios.post(`https://localhost/api/functional_stability/${endpoint}`, graphData, { httpsAgent: httpsAgent })
             .then(response => {
                 console.log('Received response:', response.data); // Вывод ответа в консоль
-                const { probabilityMatrix } = response.data.content;
+                const { isStable, execTimeMilliseconds, xG, λG, probabilityMatrix } = response.data.content;
+                setAdditionalData({ isStable, execTimeMilliseconds, xG, λG });
                 if (Array.isArray(probabilityMatrix)) {
                     setTableData(probabilityMatrix);
                 } else {
@@ -131,8 +163,25 @@ const GraphComponent = () => {
             });
     };
 
+    const deleteIncidentEdges = (nodeId, setEdges) => {
+        setEdges((prevEdges) =>
+            prevEdges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)
+        );
+    };
+
+    const handleNodeDoubleClick = (event, node) => {
+        event.preventDefault();
+        setNodes((prevNodes) => prevNodes.filter((n) => n.id !== node.id));
+        deleteIncidentEdges(node.id, setEdges);
+    };
+
+    const handleMenuClose = () => {
+        setMenuAnchorEl(null);
+        setSelectedEdge(null);
+    };
+
     return (
-        <div style={{ height: 600 }}>
+        <div style={{ height: 800 }}>
             <div style={{ height: 400 }} onClick={handleAddNode}>
                 <ReactFlow
                     nodes={nodes}
@@ -141,6 +190,8 @@ const GraphComponent = () => {
                     onEdgesChange={onEdgesChange}
                     onNodeClick={handleNodeClick}
                     onEdgeClick={handleEdgeClick}
+                    onNodeDoubleClick={handleNodeDoubleClick}
+                    onEdgeContextMenu={handleEdgeRightClick}
                     snapToGrid={true}
                     snapGrid={[15, 15]}
                     style={{ width: '100%', height: '100%' }}
@@ -165,6 +216,30 @@ const GraphComponent = () => {
             <Button variant="contained" color="secondary" onClick={() => handleSendGraph('structural_transformation')} style={{ marginTop: 20 }}>
                 Structural Transformation
             </Button>
+
+            <Typography variant="h6" style={{ marginTop: 20 }}>Additional Data</Typography>
+            <TableContainer component={Paper} style={{ marginTop: 20 }}>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Is Stable</TableCell>
+                            <TableCell>Exec Time (ms)</TableCell>
+                            <TableCell>x(G)</TableCell>
+                            <TableCell>λ(G)</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        <TableRow>
+                            <TableCell>{additionalData.isStable ? 'True' : 'False'}</TableCell>
+                            <TableCell>{additionalData.execTimeMilliseconds}</TableCell>
+                            <TableCell>{additionalData.xG}</TableCell>
+                            <TableCell>{additionalData.λG}</TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
+            </TableContainer>
+
+            <Typography variant="h6" style={{ marginTop: 20 }}>Probability Matrix</Typography>
             <TableContainer component={Paper} style={{ marginTop: 20 }}>
                 <Table>
                     <TableHead>
@@ -205,8 +280,22 @@ const GraphComponent = () => {
                     <Button onClick={handleAddEdge} color="primary">
                         {newEdge.id ? 'Save' : 'Add Edge'}
                     </Button>
+                    {selectedEdge && (
+                        <Button onClick={handleDeleteEdge} color="secondary">
+                            Delete Edge
+                        </Button>
+                    )}
                 </DialogActions>
             </Dialog>
+
+            <Menu
+                anchorEl={menuAnchorEl}
+                keepMounted
+                open={Boolean(menuAnchorEl)}
+                onClose={handleMenuClose}
+            >
+                <MenuItem onClick={handleDeleteEdge}>Delete Edge</MenuItem>
+            </Menu>
         </div>
     );
 };
