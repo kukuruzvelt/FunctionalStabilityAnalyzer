@@ -146,7 +146,7 @@ const GraphComponent = () => {
 
         console.log('Sending graph data to', endpoint, ':', graphData); // Вывод тела запроса в консоль
 
-        axios.post(`https://localhost/api/functional_stability/${endpoint}`, graphData, { httpsAgent: httpsAgent })
+        axios.post(`http://localhost:8080/api/functional_stability/${endpoint}`, graphData, { httpsAgent: httpsAgent })
             .then(response => {
                 console.log('Received response:', response.data); // Вывод ответа в консоль
                 const { isStable, execTimeMilliseconds, xG, λG, probabilityMatrix } = response.data.content;
