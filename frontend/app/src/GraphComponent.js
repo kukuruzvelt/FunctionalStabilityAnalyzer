@@ -10,7 +10,7 @@ import ReactFlow, {
 } from 'react-flow-renderer';
 import axios from 'axios';
 import { Agent } from 'https';
-import { Button, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogTitle, DialogContent, DialogActions, Typography, Menu, MenuItem } from '@mui/material';
+import { Button, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogTitle, DialogContent, DialogActions, Typography, Menu, MenuItem, Box } from '@mui/material';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -264,14 +264,16 @@ const GraphComponent = () => {
             <Dialog open={edgeDialogOpen} onClose={() => setEdgeDialogOpen(false)}>
                 <DialogTitle>{newEdge.id ? 'Edit Edge' : 'Add Edge'}</DialogTitle>
                 <DialogContent>
-                    <TextField
-                        label="Edge Weight"
-                        type="number"
-                        inputProps={{ min: "0", max: "1", step: "0.001" }}
-                        value={newEdge.value}
-                        onChange={handleEdgeWeightChange}
-                        fullWidth
-                    />
+                    <Box mt={2}> {}
+                        <TextField
+                            label="Edge Weight"
+                            type="number"
+                            inputProps={{ min: "0", max: "1", step: "0.001" }}
+                            value={newEdge.value}
+                            onChange={handleEdgeWeightChange}
+                            fullWidth
+                        />
+                    </Box>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setEdgeDialogOpen(false)} color="primary">
