@@ -144,7 +144,7 @@ final class FunctionalStability
                 }
             }
 
-            $result[] = ['source' => $source, 'target' => $target, 'probability' => $probability];
+            $result[] = ['source' => $source, 'target' => $target, 'probability' => number_format($probability, 3)];
         }
 
         return $result;
@@ -161,7 +161,7 @@ final class FunctionalStability
             $target = $pair[1];
             $probability = $this->countProbabilityForNodePairStructuralTransformation($graph, $source, $target);
 
-            $result[] = ['source' => $source, 'target' => $target, 'probability' => $probability];
+            $result[] = ['source' => $source, 'target' => $target, 'probability' => number_format($probability, 3)];
         }
 
         return $result;

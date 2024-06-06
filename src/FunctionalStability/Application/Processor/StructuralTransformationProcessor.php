@@ -75,7 +75,7 @@ class StructuralTransformationProcessor implements ProcessorInterface
                 [
                     "isStable" => $stable,
                     "id" => (string) $id,
-                    "execTimeMilliseconds" => $this->getCurrentMicroseconds() - $startTime,
+                    "execTimeMilliseconds" => number_format($this->getCurrentMicroseconds() - $startTime, 3),
                     "xG" => $functionalStability->getXG(),
                     "λG" => $functionalStability->getAlphaG(),
                     "probabilityMatrix" => $functionalStability->getProbabilities()

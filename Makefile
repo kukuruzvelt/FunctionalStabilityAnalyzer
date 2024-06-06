@@ -85,46 +85,6 @@ setup-test-db:
 	$(SYMFONY_TEST_ENV) doctrine:database:create
 	$(SYMFONY_TEST_ENV) doctrine:migrations:migrate --no-interaction
 
-all-tests: unit-tests integration-tests e2e-tests
-
-smoke-load-tests: build-k6
-	$(K6) /scripts/getUser.js -e run_average=false -e run_stress=false -e run_spike=false
-	$(K6) /scripts/getUsers.js -e run_average=false -e run_stress=false -e run_spike=false
-	$(K6) /scripts/updateUser.js -e run_average=false -e run_stress=false -e run_spike=false
-	$(K6) /scripts/createUser.js -e run_average=false -e run_stress=false -e run_spike=false
-	$(K6) /scripts/confirmUser.js -e run_average=false -e run_stress=false -e run_spike=false
-	$(K6) /scripts/deleteUser.js -e run_average=false -e run_stress=false -e run_spike=false
-	$(K6) /scripts/resendEmailToUser.js -e run_average=false -e run_stress=false -e run_spike=false
-	$(K6) /scripts/replaceUser.js -e run_average=false -e run_stress=false -e run_spike=false
-	$(K6) /scripts/graphQLUpdateUser.js -e run_average=false -e run_stress=false -e run_spike=false
-	$(K6) /scripts/graphQLGetUser.js -e run_average=false -e run_stress=false -e run_spike=false
-	$(K6) /scripts/graphQLGetUsers.js -e run_average=false -e run_stress=false -e run_spike=false
-	$(K6) /scripts/graphQLDeleteUser.js -e run_average=false -e run_stress=false -e run_spike=false
-	$(K6) /scripts/graphQLResendEmailToUser.js -e run_average=false -e run_stress=false -e run_spike=false
-	$(K6) /scripts/graphQLCreateUser.js -e run_average=false -e run_stress=false -e run_spike=false
-	$(K6) /scripts/graphQLConfirmUser.js -e run_average=false -e run_stress=false -e run_spike=false
-	$(SYMFONY) league:oauth2-server:create-client $$(jq -r '.endpoints.oauthToken.clientName' $(LOAD_TEST_CONFIG)) $$(jq -r '.endpoints.oauthToken.clientID' $(LOAD_TEST_CONFIG)) $$(jq -r '.endpoints.oauthToken.clientSecret' $(LOAD_TEST_CONFIG)) --redirect-uri=$$(jq -r '.endpoints.oauthToken.clientRedirectUri' $(LOAD_TEST_CONFIG))
-	$(K6) /scripts/oauth.js -e run_average=false -e run_stress=false -e run_spike=false
-
-load-tests: build-k6
-	$(K6) /scripts/getUser.js
-	$(K6) /scripts/getUsers.js
-	$(K6) /scripts/updateUser.js
-	$(K6) /scripts/createUser.js
-	$(K6) /scripts/confirmUser.js
-	$(K6) /scripts/deleteUser.js
-	$(K6) /scripts/resendEmailToUser.js
-	$(K6) /scripts/replaceUser.js
-	$(SYMFONY) league:oauth2-server:create-client $$(jq -r '.endpoints.oauthToken.clientName' $(LOAD_TEST_CONFIG)) $$(jq -r '.endpoints.oauthToken.clientID' $(LOAD_TEST_CONFIG)) $$(jq -r '.endpoints.oauthToken.clientSecret' $(LOAD_TEST_CONFIG)) --redirect-uri=$$(jq -r '.endpoints.oauthToken.clientRedirectUri' $(LOAD_TEST_CONFIG))
-	$(K6) /scripts/oauth.js
-	$(K6) /scripts/graphQLUpdateUser.js
-	$(K6) /scripts/graphQLGetUser.js
-	$(K6) /scripts/graphQLGetUsers.js
-	$(K6) /scripts/graphQLDeleteUser.js
-	$(K6) /scripts/graphQLResendEmailToUser.js
-	$(K6) /scripts/graphQLCreateUser.js
-	$(K6) /scripts/graphQLConfirmUser.js
-
 build-k6:
 	$(DOCKER) build -t k6 -f ./tests/Load/Dockerfile .
 
@@ -146,9 +106,6 @@ deptrac:
 deptrac-debug:
 	$(DEPTRAC) debug:unassigned --config-file=deptrac.yaml
 
-artillery: ## run Load testing
-	$(DOCKER) run --rm -v "${PWD}/tests/Load:/tests/Load" artilleryio/artillery:latest run $(addprefix /tests/Load/,$(ARTILLERY_FILES))
-
 doctrine-migrations-migrate: ## Executes a migration to a specified version or the latest available version
 	$(SYMFONY) d:m:m -n
 
@@ -160,24 +117,6 @@ doctrine-migrations-create: ## Generates migrations from entities
 
 cache-clear: ## Clears and warms up the application cache for a given environment and debug mode
 	$(SYMFONY) c:c
-
-first-release: ## Generate changelog from a project's commit messages for the first release
-	$(EXEC_PHP) ./vendor/bin/conventional-changelog --first-release --commit --no-change-without-commits
-
-changelog-generate: ## Generate changelog from a project's commit messages
-	$(EXEC_PHP) ./vendor/bin/conventional-changelog
-
-release: ## Generate changelogs and release notes from a project's commit messages for the first release
-	$(EXEC_PHP) ./vendor/bin/conventional-changelog --commit --no-change-without-commits
-
-release-patch: ## Generate changelogs and commit new patch tag from a project's commit messages
-	$(EXEC_PHP) ./vendor/bin/conventional-changelog --patch --commit --no-change-without-commits
-
-release-minor: ## Generate changelogs and commit new minor tag from a project's commit messages
-	$(EXEC_PHP) ./vendor/bin/conventional-changelog --minor --commit --no-change-without-commits
-
-release-major: ## Generate changelogs and commit new major tag from a project's commit messages
-	$(EXEC_PHP) ./vendor/bin/conventional-changelog --major --commit --no-change-without-commits
 
 install: composer.lock ## Install vendors according to the current composer.lock file
 	@$(COMPOSER) install --no-progress --prefer-dist --optimize-autoloader
